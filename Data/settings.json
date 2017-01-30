@@ -1,0 +1,156 @@
+{
+  "startEvent": "EiffelSourceChangeCreatedEvent",
+  "disallowedLinks": ["PREVIOUS_VERSION"],
+  "layout": "dagre",
+  "events":{
+    "default": {
+      "text": "{meta.type}",
+      "name": "{meta.type}",
+      "shape": {"shape": "ellipse", "width": 300, "height": 300},
+      "color":{
+        "default":  "#d0d0d0"
+      }
+    },
+    "EiffelSourceChangeCreatedEvent":{
+      "text": "Changes Created\n{meta.version}\n{date>meta.time}\n{data.author.name}\n{data.author.group}",
+      "name": "Changes Created",
+      "shape": {"shape": "ellipse", "width": 300, "height": 300},
+      "color":{
+        "default":  "#d0d0d0"
+      },
+      "identifier": "{listDict>data.customData[name]}"
+    },
+    "EiffelSourceChangeSubmittedEvent": {
+      "text": "Changes Submitted\n{meta.version}\n{date>meta.time}\n{data.submitter.name}\n{data.submitter.group}",
+      "name": "Changes Submitted\n{listDict>data.customData[name]}",
+      "shape": {"shape": "ellipse", "width": 300, "height": 300},
+      "color":{
+        "default":  "#d0d0d0"
+      },
+      "identifier": "{listDict>data.customData[name]}"
+    },
+    "EiffelArtifactCreatedEvent": {
+      "text": "Artifact Created\n{meta.version}\n{date>meta.time}\n{listDict>data.customData[name]}",
+      "name": "Artifact Created\n{listDict>data.customData[name]}",
+      "shape": {"shape": "ellipse", "width": 300, "height": 300},
+      "color":{
+        "default":  "#FFFF00"
+      },
+      "identifier": "{listDict>data.customData[name]}"
+    },
+    "EiffelArtifactPublishedEvent": {
+      "text": "Artifact Published\n{meta.version}\n{date>meta.time}\n{listDict>data.customData[name]}",
+      "name": "Artifact Published\n{listDict>data.customData[name]}",
+      "shape": {"shape": "ellipse", "width": 300, "height": 300},
+      "color":{
+        "default":  "#d0d0d0"
+      },
+      "identifier": "{listDict>data.customData[name]}"
+    },
+    "EiffelTestSuiteStartedEvent": {
+      "text": "Test Suite Started\n{meta.version}\n{date>meta.time}\n{data.name}",
+      "name": "Test Suite Started\n{listDict>data.customData[name]}",
+      "shape": {"shape": "ellipse", "width": 300, "height": 300},
+      "color":{
+        "default":  "#d0d0d0"
+      },
+      "identifier": "{listDict>data.customData[name]}"
+    },
+    "EiffelTestCaseStartedEvent": {
+      "text": "Test Case Started\n{meta.version}\n{date>meta.time}\n{listDict>data.customData[name]}",
+      "name": "Test Case Started\n{listDict>data.customData[name]}",
+      "shape": {"shape": "ellipse", "width": 300, "height": 300},
+      "color":{
+        "default":  "#d0d0d0"
+      },
+      "identifier": "{listDict>data.customData[name]}"
+    },
+    "EiffelTestSuiteFinishedEvent": {
+      "text": "Test Suite Finished\n{meta.version}\n{date>meta.time}\n{data.outcome.verdict}",
+      "name": "Test Suite Finished\n{listDict>data.customData[name]}",
+      "shape": {"shape": "ellipse", "width": 300, "height": 300},
+      "color":{
+        "default":  "#FFFF00",
+        "path": "{data.outcome.verdict}",
+        "values": {
+          "PASSED": "#66FF66",
+          "FAILED": "#FF0000"
+        }
+      },
+      "value": "{data.outcome.verdict}",
+      "identifier": "{listDict>data.customData[name]}"
+    },
+    "EiffelTestCaseFinishedEvent": {
+      "text": "Test Case Finished\n{meta.version}\n{date>meta.time}\n{data.outcome.verdict}",
+      "name": "Test Case Finished\n{listDict>data.customData[name]}",
+      "shape": {"shape": "ellipse", "width": 300, "height": 300},
+      "color":{
+        "default":  "#FFFF00",
+        "path": "{data.outcome.verdict}",
+        "values": {
+          "PASSED": "#66FF66",
+          "FAILED": "#FF0000"
+        }
+      },
+      "identifier": "{listDict>data.customData[name]}",
+      "value": "{data.outcome.verdict}"
+    },
+    "EiffelConfidenceLevelModifiedEvent": {
+      "text": "Confidence Level\n{meta.version}\n{date>meta.time}\n{data.name}\n{data.value}",
+      "name": "Confidence Level\n{data.name}",
+      "shape": {"shape": "ellipse", "width": 300, "height": 300},
+      "color":{
+        "default":  "#FFFF00",
+        "path": "{data.value}",
+        "values": {
+          "SUCCESS": "#66FF66",
+          "FAILURE": "#FF0000"
+        }
+      },
+      "identifier": "{data.name}",
+      "value": "{data.value}"
+    },
+    "EiffelActivityFinishedEvent": {
+      "text": "Activity Finished\n{meta.version}\n{date>meta.time}\n{listDict>data.customData[name]}\n{data.outcome.conclusion}",
+      "name": "Activity Finished\n{listDict>data.customData[name]}",
+      "shape": {"shape": "ellipse", "width": 300, "height": 300},
+      "color":{
+        "default":  "#FFFF00",
+        "path": "{data.outcome.conclusion}",
+        "values": {
+          "SUCCESSFUL": "#66FF66",
+          "UNSUCCESSFUL": "#FF0000"
+        }
+      },
+      "identifier": "{listDict>data.customData[name]}",
+      "value": "{data.outcome.conclusion}"
+    },
+    "EiffelActivityStartedEvent": {
+      "text": "Activity started\n{meta.version}\n{date>meta.time}\n{listDict>data.customData[name]}",
+      "name": "Activity started\n{listDict>data.customData[name]}",
+      "shape": {"shape": "ellipse", "width": 300, "height": 300},
+      "color":{
+        "default":  "#FFFF00"
+      },
+      "identifier": "{listDict>data.customData[name]}"
+    },
+    "EiffelActivityTriggeredEvent": {
+      "text": "Activity Triggered\n{meta.version}\n{date>meta.time}\n{listDict>data.customData[name]}",
+      "name": "Activity Triggered\n{listDict>data.customData[name]}",
+      "shape": {"shape": "ellipse", "width": 300, "height": 300},
+      "color":{
+        "default":  "#FFFF00"
+      },
+      "identifier": "{listDict>data.customData[name]}"
+    },
+    "EiffelCompositionDefinedEvent": {
+      "text": "Composition Defined\n{meta.version}\n{date>meta.time}\n{listDict>data.customData[name]}",
+      "name": "Composition Defined\n{listDict>data.customData[name]}",
+      "shape": {"shape": "ellipse", "width": 300, "height": 300},
+      "color":{
+        "default":  "#d0d0d0"
+      },
+      "identifier": "{listDict>data.customData[name]}"
+    }
+  }
+}

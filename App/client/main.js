@@ -1,142 +1,116 @@
-import AggregatedView from './AggregatedView';
-import HeatMapView from './HeatMapView';
-import Decorator from './Decorator';
-import MakeGraphs from './MakeGraphs';
+import { data_collection, start_times_collection, aggregation_collection } from '../lib/collections';
+import IndividualGraphs from "./individual-graphs";
+import AggregateGraphs from "./aggregate-graphs";
+import { filter } from "./filter";
 
-//mongoDB collection name (same as in server)
-var Graphs = new Mongo.Collection('example2');
+Meteor.subscribe('data');
+Meteor.subscribe('graph_data_aggregation');
+Meteor.subscribe('start_times');
 
-var selectedGraphs = [];
-var listTracibleEventIDs = [];
+Router.configure({
+    layoutTemplate: 'Layout'
+});
 
-var agg = new AggregatedView(Graphs);
-var hm = new HeatMapView(Graphs);
-var mk = new MakeGraphs(Graphs);
+Router.route('/', function () {
+    /**
+     * Landing
+     */
+    this.render('Landing', {});
+});
 
-// subscribe to the change in the mongoDB
-const handle = Meteor.subscribe('graphs');
+Router.route('/aggregation', function () {
+    /**
+     * Aggregation view
+     */
+    let queryStringParams = this.params.query;
+    this.render('Graph', {});
+    let agg;  // Hold the pre-generated structure for the aggregation.
+    let loaded = false; // Variable for marking if the aggregated structure has loaded.
 
-// Keep track every time the data changes in the database
-Tracker.autorun(() => {
-    if (handle.ready()) {// When the data is ready to be fetched
-        let arrayGraphs = []; // array to store parsed Eiffel graphs
-        let dbData = Graphs.find({}); // query
-        let len = dbData.fetch().length; // number of records
-
-        for (let i = 0; i < len; i++) {
-            // Fetch Eiffel graphs, convert to dot format and put it in array to process further
-            arrayGraphs.push(dbData.fetch()[i]);
+    // Load agg variable.
+    aggregation_collection.find().observeChanges({
+        added: function(id, fields) {
+            agg = fields;
+            loaded = true;
         }
-        mainFunc(arrayGraphs);
+    });
+    aggregation_collection.find({}).fetch();
+
+    Template.Graph.rendered=function() { // This code is executed after the page has rendered.
+        $(document).ready(function () {
+            let data_list = [];  // Array of all graphs to aggregate
+            let id_list = [];  // Array with exact same order as data_list for index lookups.
+            let changed = false;  // Polling variable.
+            let $c;  // Container variable that needs to be accessed outside of the filter call.
+            filter(
+                "Aggregate",
+                queryStringParams,
+                "_agg",
+                500,
+                "/aggregation",
+                data_collection,
+                start_times_collection,
+                {
+                    'addOne': function(data, $container) {
+                        $c = $container;
+                        data_list.push(data);
+                        id_list.push(data['_id']);
+                        changed = true;
+                    },
+                    'removeOne': function(id, $container) {
+                        let index = id_list.indexOf(id);
+                        if (index > -1) {
+                            id_list.splice(index, 1);
+                            data_list.splice(index, 1);
+                            changed = true;
+                        }
+                    }
+                }
+            );
+            // Poll for changes to the aggregation every second second to not crash the view in the browser.
+            setInterval(function(){
+                if(changed && loaded){
+                    changed = false;
+                    AggregateGraphs.drawGraphs(data_list, JSON.parse(JSON.stringify(agg)), $c);
+                }
+            }, 2000);
+        });
     }
 });
 
-function mainFunc(arrayGraphs) {
-
-    $(document).ready(function () {
-        let $btnHide = $('#btnHide');
-        let $container = $('#container');
-
-        // Hide/show the heatmap view
-        $btnHide.click(function () {
-            // If already hidden then show, if already shown, hide
-            if ($container.is(":visible")) {
-                $container.hide();
-                $btnHide.html('Show Heatmap');
-            }
-            else {
-                $container.show();
-                $btnHide.html('Hide Heatmap');
-            }
+Router.route('/graph', function () {
+    /**
+     * Individual graphs view
+     */
+    let queryStringParams = this.params.query;
+    this.render('Graph', {});
+    Template.Graph.rendered=function() { // Run this code when the elements are created
+        $(document).ready(function () {
+            filter(
+                "Individual Instances",
+                queryStringParams,
+                "_ind",
+                20,
+                "/graph",
+                data_collection,
+                start_times_collection,
+                {
+                    'addOne': function(data, $container) {
+                        IndividualGraphs.drawGraph(data, $container);
+                    },
+                    'removeOne': function(id, $container) {
+                        IndividualGraphs.removeGraph(id, $container);
+                    }
+                }
+            )
         });
+    }
 
-        listTracibleEventIDs = mk.makeLinkedEvents(arrayGraphs); // make related events linked
+});
 
-        let jsonHeatMapInput = hm.aggregatedCCTS(listTracibleEventIDs); // testcases and code changes for heatmap
-
-        let options = hm.setHeatMapProperties(listTracibleEventIDs, jsonHeatMapInput.xValue, jsonHeatMapInput.yValue, jsonHeatMapInput.zValue); // set heatmap properties
-        // Draw the heatmap
-        let chart = new Highcharts.Chart(options);
-
-        // Time Line 
-
-        $('#timeline').empty();
-
-        // Get timeLine properties Date range etc to draw the timeline accordingly
-        let json = setTimeLineProperties();
-
-        // Create a Timeline accroding to the properties
-        let timeline = new vis.Timeline(json.container, json.items, json.options);
-
-        // If the range is changed by the user, modify the heatMap accordingly 
-        timeline.on("rangechanged", function (properties) {
-
-            // To make the div empty for stop showing previous graphs to user
-            $container.empty();
-            $('#graph-container').empty();
-            $('#aggGraph-containerHM').empty();
-
-            // Current start and end date selected in the timeline
-            let timeLineStart = properties.start.getTime();
-            let timeLineEnd = properties.end.getTime();
-
-            // Get records within the selected date range
-            selectedGraphs = mk.queryReturnDateRange(timeLineStart, timeLineEnd);
-
-            listTracibleEventIDs = mk.makeLinkedEvents(selectedGraphs); // make related events linked
-            jsonHeatMapInput = hm.aggregatedCCTS(listTracibleEventIDs); // testcases and code changes for heatmap
-            let gList = mk.makeGraph(listTracibleEventIDs); // make graph format
-            agg.drawGraphs(gList, '#graph-container', 'Individual Instances'); // draw the graphs on canvas
-
-            let jsonSepAggregated = agg.separateAggregatedGraphData(listTracibleEventIDs); // separate aggregated view data
-            gList = agg.makeAggGraph(jsonSepAggregated); // // make graph format for aggregated veiw
-            agg.drawGraphs(gList, '#aggGraph-containerHM', 'Aggregated Results'); // draw the aggregated graph on canvas
-
-            // Related code changes: jsonHeatMapInput.xValue
-            // Related test suite: jsonHeatMapInput.yValue 
-            // Result: jsonHeatMapInput.zValue
-
-            // Set properties according to the aggregated results
-            let options = hm.setHeatMapProperties(listTracibleEventIDs, jsonHeatMapInput.xValue, jsonHeatMapInput.yValue, jsonHeatMapInput.zValue);
-
-            // Draw new heatmap according to the records with selected date range
-            chart = new Highcharts.Chart(options); // Draw the heatmap
-
-            // Date range selected in the timeline
-            $("label[for = lblDate1]").text("Date Range: " + Decorator.formatDate(new Date(timeLineStart)) + "  -  " + Decorator.formatDate(new Date(timeLineEnd)));
-
-            // Draw the heatmap
-            chart = new Highcharts.Chart(options);
-        });
-    });
-}
-
-// Data to be pass on to the timeline function to draw the timeline accordingly
-function setTimeLineProperties() {
-
-    // DOM element where the Timeline will be attached
-    let container = document.getElementById('timeline');
-
-    // Create a DataSet (allows two way data-binding)
-    let items = new vis.DataSet([
-        {start: new Date()}
-    ]);
-
-    // Data to pass on to Timeline function to draw timeline
-    let options = {
-        selectable: false,
-        //itemsAlwaysDraggable: false,
-        showCurrentTime: false,
-        zoomable: true
-        //moveable: true,
-        //zoomKey: 'z'
-    };
-
-
-    let json = {};
-    json.container = container;
-    json.items = items;
-    json.options = options;
-
-    return json;
-}
+Router.route('/(.*)', function () { //404
+    /**
+     * 404 view
+     */
+    this.render('404', {});
+});

@@ -5,7 +5,10 @@
     "start": "meteor run"
   },
   "dependencies": {
-    "dagre-d3": "^0.4.17",
-    "meteor-node-stubs": "~0.2.0"
+    "babel-runtime": "^6.20.0",
+    "bcrypt": "^1.0.2",
+    "cytoscape": "^2.7.14",
+    "meteor-node-stubs": "~0.2.0",
+    "vis": "^4.18.0"
   }
 }

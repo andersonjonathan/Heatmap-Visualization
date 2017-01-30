@@ -1,0 +1,15 @@
+{
+  "name": "importData",
+  "private": true,
+  "scripts": {
+    "import": "node import_data.js",
+    "generate": "node generate_graphs.js"
+  },
+  "dependencies": {
+    "cytoscape": "^2.7.14",
+    "cytoscape-dagre": "^1.3.0",
+    "dagre": "^0.7.4",
+    "minimist": "1.2.0",
+    "mongodb": "^2.2.21"
+  }
+}
